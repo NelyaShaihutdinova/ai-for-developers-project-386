@@ -68,6 +68,8 @@ function getWeekdays(): Date[] {
   return dates
 }
 
+import { Link } from 'react-router-dom'
+
 function MeetingsPage() {
   const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([])
   const [selectedType, setSelectedType] = useState<MeetingType | null>(null)
@@ -209,6 +211,11 @@ function MeetingsPage() {
   if (!selectedType) {
     return (
       <Container size="md" py="xl">
+        <Group mb="xl">
+          <Button component={Link} to="/" variant="subtle">
+            ← На главную
+          </Button>
+        </Group>
         <Title order={1} ta="center" mb="xl">
           Выберите тип встречи
         </Title>
