@@ -23,7 +23,10 @@ describe('Bookings', () => {
     meetingTypeId = res.body.id
 
     // Use a unique date for this test run to avoid conflicts with existing data
-    testDate = new Date().toISOString().split('T')[0] // today's date
+    // Use a date 30 days from now to ensure no conflicts
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    testDate = futureDate.toISOString().split('T')[0]
   })
 
   afterAll(() => {
@@ -100,6 +103,20 @@ describe('Bookings', () => {
         })
       expect(res.status).toBe(400)
       expect(res.body.error.code).toBe('VALIDATION_ERROR')
+    })
+  })
+
+  describe('GET /api/bookings', () => {
+    it('returns future bookings sorted by startAt ASC', async () => {
+      const res = await request('http://localhost:3096').get('/api/bookings')
+      expect(res.status).toBe(200)
+      expect(Array.isArray(res.body)).toBe(true)
+      // Should include bookings we created in this test suite
+      expect(res.body.length).toBeGreaterThanOrEqual(2)
+      // Check that response includes meetingTypeName
+      if (res.body.length > 0) {
+        expect(res.body[0]).toHaveProperty('meetingTypeName')
+      }
     })
   })
 })

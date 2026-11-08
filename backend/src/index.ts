@@ -1,5 +1,5 @@
 import { Hono, Context } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, gt } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from './db'
 import { meetingTypes, bookings } from './db/schema'
@@ -274,6 +274,30 @@ app.post('/api/bookings', async (c) => {
     }
     throw err
   }
+})
+
+// GET /api/bookings - list future bookings
+app.get('/api/bookings', async (c) => {
+  const now = new Date().toISOString()
+
+  const result = await db
+    .select({
+      id: bookings.id,
+      meetingTypeId: bookings.meetingTypeId,
+      meetingTypeName: meetingTypes.name,
+      startAt: bookings.startAt,
+      endAt: bookings.endAt,
+      guestName: bookings.guestName,
+      guestEmail: bookings.guestEmail,
+      createdAt: bookings.createdAt,
+    })
+    .from(bookings)
+    .innerJoin(meetingTypes, eq(bookings.meetingTypeId, meetingTypes.id))
+    .where(gt(bookings.startAt, now))
+    .orderBy(bookings.startAt)
+    .all()
+
+  return c.json(result)
 })
 
 export default app

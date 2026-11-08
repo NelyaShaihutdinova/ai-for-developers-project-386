@@ -87,5 +87,17 @@ model Booking {
 
 @route("/api/bookings")
 interface Bookings {
+  @get list(): BookingWithTypeName[];
   create(body: BookingCreate): Booking;
+}
+
+model BookingWithTypeName {
+  id: int32;
+  meetingTypeId: int32;
+  meetingTypeName: string;
+  startAt: string;
+  endAt: string;
+  guestName: string;
+  guestEmail: string;
+  createdAt: string;
 }
