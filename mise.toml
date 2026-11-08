@@ -108,6 +108,14 @@ run = "npm run typecheck"
 description = "Run all checks: lint, format, typecheck, test"
 depends = ["lint", "format:check", "typecheck", "test"]
 
+[tasks."hooks:install"]
+description = "Install git hooks via hk"
+run = "hk install"
+
+[tasks."hooks:uninstall"]
+description = "Remove git hooks"
+run = "hk uninstall"
+
 [daemons.backend]
 description = "Backend dev server daemon"
 dir = "backend"
