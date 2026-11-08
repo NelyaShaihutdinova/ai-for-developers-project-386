@@ -33,14 +33,27 @@ model MeetingTypeUpdate {
   durationMinutes?: int32;
 }
 
+model ErrorResponse {
+  code: string;
+  message: string;
+}
+
 model Error {
+  error: ErrorResponse;
+}
+
+model NotFound {
   error: {
-    code: string;
-    message: string;
+    code: "NOT_FOUND";
+    message: "Meeting type not found";
   };
 }
 
 @route("/api/meeting-types")
 interface MeetingTypes {
-  list(): MeetingType[];
+  @get list(): MeetingType[];
+  @get getById(@path id: int32): MeetingType | NotFound;
+  create(body: MeetingTypeCreate): MeetingType;
+  @patch update(@path id: int32, body: MeetingTypeUpdate): MeetingType | NotFound;
+  @post deactivate(@path id: int32): MeetingType | NotFound;
 }

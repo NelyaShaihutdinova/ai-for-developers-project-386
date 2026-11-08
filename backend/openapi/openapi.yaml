@@ -17,6 +17,93 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MeetingType'
+    post:
+      operationId: MeetingTypes_create
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingType'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  $ref: '#/components/schemas/MeetingTypeCreate'
+              required:
+                - body
+  /api/meeting-types/{id}:
+    get:
+      operationId: MeetingTypes_getById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/MeetingType'
+                  - $ref: '#/components/schemas/NotFound'
+    patch:
+      operationId: MeetingTypes_update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/MeetingType'
+                  - $ref: '#/components/schemas/NotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  $ref: '#/components/schemas/MeetingTypeUpdate'
+              required:
+                - body
+    post:
+      operationId: MeetingTypes_deactivate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/MeetingType'
+                  - $ref: '#/components/schemas/NotFound'
 components:
   schemas:
     Error:
@@ -25,15 +112,17 @@ components:
         - error
       properties:
         error:
-          type: object
-          properties:
-            code:
-              type: string
-            message:
-              type: string
-          required:
-            - code
-            - message
+          $ref: '#/components/schemas/ErrorResponse'
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
     MeetingType:
       type: object
       required:
@@ -82,6 +171,25 @@ components:
         durationMinutes:
           type: integer
           format: int32
+    NotFound:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - NOT_FOUND
+            message:
+              type: string
+              enum:
+                - Meeting type not found
+          required:
+            - code
+            - message
 servers:
   - url: http://localhost:3000
     description: Development server
