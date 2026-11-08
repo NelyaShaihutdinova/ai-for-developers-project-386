@@ -11,7 +11,6 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { IconPencil, IconTrash } from '@tabler/icons-react'
 
@@ -65,7 +64,6 @@ function DashboardPage() {
 
   // Filters
   const [filterType, setFilterType] = useState<string | null>(null)
-  const [filterDate, setFilterDate] = useState<Date | null>(null)
 
   const form = useForm({
     initialValues: { name: '', description: '', durationMinutes: 30 },
@@ -136,13 +134,6 @@ function DashboardPage() {
   // Filtered bookings
   const filteredBookings = bookings.filter((b) => {
     if (filterType && b.meetingTypeId !== Number(filterType)) return false
-    if (filterDate) {
-      const bookingDateStr = new Date(b.startAt).toLocaleDateString('en-CA', {
-        timeZone: 'Europe/Moscow',
-      })
-      const filterDateStr = filterDate.toLocaleDateString('en-CA', { timeZone: 'Europe/Moscow' })
-      if (bookingDateStr !== filterDateStr) return false
-    }
     return true
   })
 
@@ -243,14 +234,6 @@ function DashboardPage() {
           onChange={setFilterType}
           data={meetingTypes.map((mt) => ({ value: String(mt.id), label: mt.name }))}
           style={{ maxWidth: 250 }}
-        />
-        <DatePickerInput
-          label="Дата"
-          placeholder="Все дни"
-          clearable
-          value={filterDate}
-          onChange={setFilterDate}
-          style={{ maxWidth: 200 }}
         />
       </Group>
 

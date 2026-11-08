@@ -181,6 +181,7 @@ function MeetingsPage() {
     setSlots([])
     setConfirmedBooking(null)
     setConflictError('')
+    setBooking(false)
     form.reset()
   }
 
