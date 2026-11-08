@@ -9,7 +9,7 @@
         "headers": {
           "Authorization": "Bearer {env:RENDER_API_KEY}"
         },
-        "disabled": true
+        "disabled": false
       }
     }
   }
