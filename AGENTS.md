@@ -53,3 +53,11 @@ All commits must follow Conventional Commits:
 - `docs:` — documentation
 - `refactor:` — code refactoring
 - `test:` — tests
+
+### Ticket references
+
+Every implementation commit must reference the ticket it closes in the commit message body or subject, using the format `(#NN)` where `NN` is the GitHub issue number. Examples:
+
+- `feat: запись на свободный слот (#12)`
+- `fix: корректная фильтрация слотов по дате (#13)`
+- `chore: добавить drizzle-kit в backend (#11)`

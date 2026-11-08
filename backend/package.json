@@ -12,7 +12,10 @@
     "lint:fix": "eslint src __tests__ --fix",
     "format:check": "prettier --check src __tests__",
     "format:fix": "prettier --write src __tests__",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typespec:compile": "tsp compile typespec",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
@@ -20,13 +23,22 @@
   "type": "commonjs",
   "dependencies": {
     "@hono/node-server": "^2.1.6",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.4",
     "hono": "^4.13.17"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.6",
     "@types/supertest": "^7.2.1",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
+    "@typespec/compiler": "^1.17.0",
+    "@typespec/http": "^1.17.0",
+    "@typespec/openapi": "^1.17.0",
+    "@typespec/openapi3": "^1.17.0",
+    "@typespec/rest": "^0.87.0",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.10",
