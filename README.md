@@ -14,16 +14,32 @@
 
 ## Установка
 
-<!-- Опишите установку: клонирование, зависимости, переменные окружения -->
-
 ```bash
 git clone https://github.com/NelyaShaihutdinova/ai-for-developers-project-386.git
 cd ai-for-developers-project-386
+mise install
+mise run install
 ```
 
 ## Использование
 
-<!-- Добавьте примеры запуска и запись asciinema — именно это смотрит работодатель -->
+```bash
+# Запустить оба dev сервера
+mise run dev
+
+# Запустить только backend или frontend
+mise run dev:backend
+mise run dev:frontend
+
+# Запустить все проверки (lint, format, typecheck, test)
+mise run check
+
+# Собрать проект
+mise run build
+
+# Установить pre-commit hooks
+mise run hooks:install
+```
 
 ---
 

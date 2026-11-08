@@ -1,4 +1,5 @@
 import { Hono, Context } from 'hono'
+import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { eq, and, gt } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from './db'
@@ -29,7 +30,7 @@ const updateMeetingTypeSchema = z.object({
 })
 
 // Helpers
-const errorResponse = (code: string, message: string, status: number, c: Context) => {
+const errorResponse = (code: string, message: string, status: ContentfulStatusCode, c: Context) => {
   return c.json({ error: { code, message } }, status)
 }
 

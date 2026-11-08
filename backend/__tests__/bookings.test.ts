@@ -23,10 +23,9 @@ describe('Bookings', () => {
     meetingTypeId = res.body.id
 
     // Use a unique date for this test run to avoid conflicts with existing data
-    // Use a date 30 days from now to ensure no conflicts
-    const futureDate = new Date()
-    futureDate.setDate(futureDate.getDate() + 30)
-    testDate = futureDate.toISOString().split('T')[0]
+    // Use a date far in the future with a unique suffix based on timestamp
+    const now = new Date()
+    testDate = `${now.getFullYear() + 1}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   })
 
   afterAll(() => {
