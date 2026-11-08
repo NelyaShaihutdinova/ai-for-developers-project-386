@@ -3,6 +3,8 @@ import request from 'supertest'
 import { serve } from '@hono/node-server'
 import type { Server } from 'node:http'
 import app from '../src/index'
+import { db } from '../src/db'
+import { sql } from 'drizzle-orm'
 
 describe('Bookings', () => {
   let server: Server
@@ -11,6 +13,10 @@ describe('Bookings', () => {
 
   beforeAll(async () => {
     server = serve({ fetch: app.fetch, port: 3096 })
+
+    // Clear database to avoid conflicts between test runs
+    db.run(sql`DELETE FROM bookings`)
+    db.run(sql`DELETE FROM meeting_types`)
 
     // Create a meeting type for testing
     const res = await request('http://localhost:3096')
