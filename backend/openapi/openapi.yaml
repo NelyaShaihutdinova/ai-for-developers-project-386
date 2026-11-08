@@ -104,6 +104,34 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/MeetingType'
                   - $ref: '#/components/schemas/NotFound'
+  /api/slots:
+    get:
+      operationId: Slots_list
+      parameters:
+        - name: meetingTypeId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Slot'
+                  - $ref: '#/components/schemas/NotFound'
 components:
   schemas:
     Error:
@@ -190,6 +218,16 @@ components:
           required:
             - code
             - message
+    Slot:
+      type: object
+      required:
+        - startAt
+        - endAt
+      properties:
+        startAt:
+          type: string
+        endAt:
+          type: string
 servers:
   - url: http://localhost:3000
     description: Development server

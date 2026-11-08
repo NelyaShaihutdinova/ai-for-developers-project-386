@@ -49,6 +49,16 @@ model NotFound {
   };
 }
 
+model Slot {
+  startAt: string;
+  endAt: string;
+}
+
+@route("/api/slots")
+interface Slots {
+  @get list(@query meetingTypeId: int32, @query date: string): Slot[] | NotFound;
+}
+
 @route("/api/meeting-types")
 interface MeetingTypes {
   @get list(): MeetingType[];

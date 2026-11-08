@@ -139,4 +139,60 @@ app.post('/api/meeting-types/:id/deactivate', async (c) => {
   return c.json(result[0])
 })
 
+// GET /api/slots - list available slots for a day
+app.get('/api/slots', async (c) => {
+  const meetingTypeId = parseInt(c.req.query('meetingTypeId') || '')
+  const dateStr = c.req.query('date') || ''
+
+  // Validate meetingTypeId
+  if (isNaN(meetingTypeId)) {
+    return errorResponse('VALIDATION_ERROR', 'meetingTypeId is required', 400, c)
+  }
+
+  // Get meeting type
+  const mtResult = await db
+    .select()
+    .from(meetingTypes)
+    .where(eq(meetingTypes.id, meetingTypeId))
+
+  if (mtResult.length === 0 || !mtResult[0].isActive) {
+    return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
+  }
+
+  const duration = mtResult[0].durationMinutes
+
+  // Generate slots for the given date
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) {
+    return errorResponse('VALIDATION_ERROR', 'Invalid date format', 400, c)
+  }
+
+  // Working hours 09:00-18:00 in UTC (Moscow is UTC+3, so 09:00 MSK = 06:00 UTC)
+  const startHour = 6 // 09:00 MSK in UTC
+  const endHour = 15  // 18:00 MSK in UTC
+  const slots: { startAt: string; endAt: string }[] = []
+
+  for (let hour = startHour; hour < endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const slotStart = new Date(date)
+      slotStart.setUTCHours(hour, minute, 0, 0)
+
+      const slotEnd = new Date(slotStart)
+      slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + duration)
+
+      // Check if slot ends by 18:00 MSK (15:00 UTC)
+      if (slotEnd.getUTCHours() > endHour || (slotEnd.getUTCHours() === endHour && slotEnd.getUTCMinutes() > 0)) {
+        continue
+      }
+
+      slots.push({
+        startAt: slotStart.toISOString(),
+        endAt: slotEnd.toISOString(),
+      })
+    }
+  }
+
+  return c.json(slots)
+})
+
 export default app
