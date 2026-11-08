@@ -103,7 +103,6 @@ function MeetingsPage() {
 
   const loadSlots = useCallback(async (date: Date, meetingTypeId: number) => {
     setLoadingSlots(true)
-    setConflictError('')
     try {
       const dateStr = formatDate(date)
       const res = await fetch(

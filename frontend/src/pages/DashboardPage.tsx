@@ -136,12 +136,12 @@ function DashboardPage() {
   // Filtered bookings
   const filteredBookings = bookings.filter((b) => {
     if (filterType && b.meetingTypeId !== Number(filterType)) return false
-    if (filterDate && filterDate instanceof Date && !isNaN(filterDate.getTime())) {
-      const bookingDate = new Date(b.startAt).toLocaleDateString('ru-RU', {
+    if (filterDate) {
+      const bookingDateStr = new Date(b.startAt).toLocaleDateString('en-CA', {
         timeZone: 'Europe/Moscow',
       })
-      const filterDateStr = filterDate.toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' })
-      if (bookingDate !== filterDateStr) return false
+      const filterDateStr = filterDate.toLocaleDateString('en-CA', { timeZone: 'Europe/Moscow' })
+      if (bookingDateStr !== filterDateStr) return false
     }
     return true
   })
