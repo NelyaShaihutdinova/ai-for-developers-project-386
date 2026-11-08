@@ -2,7 +2,7 @@ import { Hono, Context } from 'hono'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from './db'
-import { meetingTypes } from './db/schema'
+import { meetingTypes, bookings } from './db/schema'
 
 const app = new Hono()
 
@@ -193,6 +193,87 @@ app.get('/api/slots', async (c) => {
   }
 
   return c.json(slots)
+})
+
+// POST /api/bookings - create booking
+app.post('/api/bookings', async (c) => {
+  const body = await c.req.json()
+
+  const bookingSchema = z.object({
+    meetingTypeId: z.number().int().positive(),
+    startAt: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid ISO date' }),
+    guestName: z.string().min(1).max(100),
+    guestEmail: z.string().email().max(255),
+  })
+
+  const validation = bookingSchema.safeParse(body)
+  if (!validation.success) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      validation.error.issues.map((e) => e.message).join(', '),
+      400,
+      c
+    )
+  }
+
+  const { meetingTypeId, startAt, guestName, guestEmail } = validation.data
+
+  // Get meeting type
+  const mtResult = await db
+    .select()
+    .from(meetingTypes)
+    .where(eq(meetingTypes.id, meetingTypeId))
+
+  if (mtResult.length === 0 || !mtResult[0].isActive) {
+    return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
+  }
+
+  const duration = mtResult[0].durationMinutes
+  const startDateTime = new Date(startAt)
+  const endDateTime = new Date(startDateTime.getTime() + duration * 60000)
+
+  // Atomic transaction: check conflicts then insert
+  try {
+    const startStr = startDateTime.toISOString()
+    const endStr = endDateTime.toISOString()
+
+    const result = db.transaction((tx) => {
+      // Get all bookings and filter in JS
+      const allBookings = tx.select().from(bookings).all()
+
+      const hasConflict = allBookings.some(
+        (b) => b.startAt <= endStr && b.endAt > startStr
+      )
+
+      if (hasConflict) {
+        throw new Error('CONFLICT')
+      }
+
+      // Insert booking using raw SQL to avoid circular structure
+      const insertResult = tx.run(
+        `INSERT INTO bookings (meeting_type_id, start_at, end_at, guest_name, guest_email)
+         VALUES (${meetingTypeId}, '${startStr}', '${endStr}', '${guestName}', '${guestEmail}')`
+      )
+
+      const newId = insertResult.lastInsertRowid
+
+      // Get the inserted booking
+      const [newBooking] = tx
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, Number(newId)))
+        .all()
+
+      return newBooking
+    })
+
+    return c.json(result, 201)
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'CONFLICT') {
+      return errorResponse('CONFLICT', 'Slot is already booked', 409, c)
+    }
+    throw err
+  }
 })
 
 export default app

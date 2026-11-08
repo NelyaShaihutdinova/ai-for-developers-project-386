@@ -67,3 +67,25 @@ interface MeetingTypes {
   @patch update(@path id: int32, body: MeetingTypeUpdate): MeetingType | NotFound;
   @post deactivate(@path id: int32): MeetingType | NotFound;
 }
+
+model BookingCreate {
+  meetingTypeId: int32;
+  startAt: string;
+  guestName: string;
+  guestEmail: string;
+}
+
+model Booking {
+  id: int32;
+  meetingTypeId: int32;
+  startAt: string;
+  endAt: string;
+  guestName: string;
+  guestEmail: string;
+  createdAt: string;
+}
+
+@route("/api/bookings")
+interface Bookings {
+  create(body: BookingCreate): Booking;
+}
