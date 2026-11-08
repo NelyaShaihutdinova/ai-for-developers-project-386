@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Container, Flex, Grid, Group, Loader, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Button,
+  Card,
+  Container,
+  Flex,
+  Grid,
+  Group,
+  Loader,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
 
 interface MeetingType {
   id: number
@@ -24,6 +38,16 @@ function formatTime(isoString: string): string {
   })
 }
 
+function formatDateFull(isoString: string): string {
+  const date = new Date(isoString)
+  return date.toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'Europe/Moscow',
+  })
+}
+
 function formatDate(date: Date): string {
   return date.toISOString().split('T')[0]
 }
@@ -32,12 +56,11 @@ function getWeekdays(): Date[] {
   const dates: Date[] = []
   const today = new Date()
   let date = new Date(today)
-  date.setDate(date.getDate() + 1) // start from tomorrow
+  date.setDate(date.getDate() + 1)
 
   while (dates.length < 14) {
     const day = date.getDay()
     if (day !== 0 && day !== 6) {
-      // skip weekends
       dates.push(new Date(date))
     }
     date.setDate(date.getDate() + 1)
@@ -53,6 +76,22 @@ function MeetingsPage() {
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [booking, setBooking] = useState(false)
+  const [conflictError, setConflictError] = useState('')
+  const [confirmedBooking, setConfirmedBooking] = useState<{
+    startAt: string
+    endAt: string
+    guestName: string
+    guestEmail: string
+  } | null>(null)
+
+  const form = useForm({
+    initialValues: { guestName: '', guestEmail: '' },
+    validate: {
+      guestName: (v) => (v.length > 0 ? null : 'Имя обязательно'),
+      guestEmail: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Неверный email'),
+    },
+  })
 
   useEffect(() => {
     fetch('http://localhost:3000/api/meeting-types')
@@ -62,6 +101,7 @@ function MeetingsPage() {
 
   const loadSlots = useCallback(async (date: Date, meetingTypeId: number) => {
     setLoadingSlots(true)
+    setConflictError('')
     try {
       const dateStr = formatDate(date)
       const res = await fetch(
@@ -77,9 +117,93 @@ function MeetingsPage() {
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
     setSelectedSlot(null)
+    setConfirmedBooking(null)
     if (selectedType) {
       loadSlots(date, selectedType.id)
     }
+  }
+
+  const handleBooking = async (values: typeof form.values) => {
+    if (!selectedSlot || !selectedType) return
+    setBooking(true)
+    setConflictError('')
+
+    try {
+      const res = await fetch('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetingTypeId: selectedType.id,
+          startAt: selectedSlot.startAt,
+          guestName: values.guestName,
+          guestEmail: values.guestEmail,
+        }),
+      })
+
+      if (res.status === 409) {
+        setConflictError('Этот слот уже занят. Выберите другой.')
+        setSlots([])
+        if (selectedDate && selectedType) {
+          await loadSlots(selectedDate, selectedType.id)
+        }
+        setBooking(false)
+        return
+      }
+
+      if (!res.ok) {
+        setBooking(false)
+        return
+      }
+
+      const data = await res.json()
+      setConfirmedBooking({
+        startAt: data.startAt,
+        endAt: data.endAt,
+        guestName: data.guestName,
+        guestEmail: data.guestEmail,
+      })
+    } catch {
+      setBooking(false)
+    }
+  }
+
+  const resetToStart = () => {
+    setSelectedType(null)
+    setSelectedDate(null)
+    setSelectedSlot(null)
+    setSlots([])
+    setConfirmedBooking(null)
+    setConflictError('')
+    form.reset()
+  }
+
+  if (confirmedBooking) {
+    return (
+      <Container size="md" py="xl">
+        <Flex direction="column" align="center" gap="lg">
+          <IconCheck size={48} color="green" />
+          <Title order={1}>Записано!</Title>
+          <Card shadow="sm" padding="lg" withBorder style={{ width: '100%', maxWidth: 400 }}>
+            <Text fw={500} mb="xs">
+              {selectedType?.name}
+            </Text>
+            <Text size="sm" mb="xs">
+              {formatDateFull(confirmedBooking.startAt)}
+            </Text>
+            <Text size="sm" mb="xs">
+              {formatTime(confirmedBooking.startAt)}–{formatTime(confirmedBooking.endAt)}
+            </Text>
+            <Text size="sm" mb="xs">
+              Имя: {confirmedBooking.guestName}
+            </Text>
+            <Text size="sm">Email: {confirmedBooking.guestEmail}</Text>
+          </Card>
+          <Button onClick={resetToStart} size="lg" mt="md">
+            Записаться ещё
+          </Button>
+        </Flex>
+      </Container>
+    )
   }
 
   if (!selectedType) {
@@ -130,15 +254,7 @@ function MeetingsPage() {
   return (
     <Container size="md" py="xl">
       <Group mb="xl">
-        <Button
-          variant="subtle"
-          onClick={() => {
-            setSelectedType(null)
-            setSelectedDate(null)
-            setSelectedSlot(null)
-            setSlots([])
-          }}
-        >
+        <Button variant="subtle" onClick={resetToStart}>
           ← Назад к типам
         </Button>
         <Title order={2}>
@@ -177,7 +293,7 @@ function MeetingsPage() {
           <Text mb="md" fw={500}>
             Доступные слоты:
           </Text>
-          <Flex gap="xs" wrap="wrap">
+          <Flex gap="xs" wrap="wrap" mb="xl">
             {slots.map((slot, idx) => {
               const isSelected =
                 selectedSlot &&
@@ -187,7 +303,10 @@ function MeetingsPage() {
                 <Button
                   key={idx}
                   variant={isSelected ? 'filled' : 'outline'}
-                  onClick={() => setSelectedSlot(slot)}
+                  onClick={() => {
+                    setSelectedSlot(slot)
+                    setConflictError('')
+                  }}
                   size="sm"
                 >
                   {formatTime(slot.startAt)}–{formatTime(slot.endAt)}
@@ -199,6 +318,35 @@ function MeetingsPage() {
       ) : selectedDate ? (
         <Text c="dimmed">Нет доступных слотов</Text>
       ) : null}
+
+      {conflictError && (
+        <Alert icon={<IconAlertCircle size={16} />} color="red" mb="lg">
+          {conflictError}
+        </Alert>
+      )}
+
+      {selectedSlot && (
+        <form onSubmit={form.onSubmit(handleBooking)}>
+          <Text mb="md" fw={500}>
+            Заполните данные:
+          </Text>
+          <TextInput
+            label="Имя"
+            placeholder="Ваше имя"
+            mb="sm"
+            {...form.getInputProps('guestName')}
+          />
+          <TextInput
+            label="Email"
+            placeholder="email@example.com"
+            mb="md"
+            {...form.getInputProps('guestEmail')}
+          />
+          <Button type="submit" fullWidth size="lg" loading={booking}>
+            Записаться
+          </Button>
+        </form>
+      )}
     </Container>
   )
 }
