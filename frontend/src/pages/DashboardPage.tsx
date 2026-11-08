@@ -231,7 +231,7 @@ function DashboardPage() {
           placeholder="Все"
           clearable
           value={filterType}
-          onChange={setFilterType}
+          onChange={(value) => setFilterType(value?.toString() ?? null)}
           data={meetingTypes.map((mt) => ({ value: String(mt.id), label: mt.name }))}
           style={{ maxWidth: 250 }}
         />

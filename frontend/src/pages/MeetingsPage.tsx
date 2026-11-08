@@ -247,14 +247,14 @@ function MeetingsPage() {
                       {mt.name}
                     </Text>
                   </Card.Section>
-                  <Card.Section padding="sm">
+                  <div style={{ padding: 'var(--mantine-spacing-sm)' }}>
                     <Text size="sm" c="dimmed">
                       {mt.description}
                     </Text>
                     <Text size="sm" mt="xs">
                       Длительность: {mt.durationMinutes} мин
                     </Text>
-                  </Card.Section>
+                  </div>
                 </Card>
               </Grid.Col>
             ))}
