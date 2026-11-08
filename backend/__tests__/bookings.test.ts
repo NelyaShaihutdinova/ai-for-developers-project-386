@@ -23,7 +23,7 @@ describe('Bookings', () => {
     meetingTypeId = res.body.id
 
     // Use fixed future dates to avoid conflicts with other tests
-    testDate = '2028-05-10'
+    testDate = '2029-09-15'
   })
 
   afterAll(() => {

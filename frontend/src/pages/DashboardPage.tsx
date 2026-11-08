@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   ActionIcon,
   Button,
@@ -137,7 +136,7 @@ function DashboardPage() {
   // Filtered bookings
   const filteredBookings = bookings.filter((b) => {
     if (filterType && b.meetingTypeId !== Number(filterType)) return false
-    if (filterDate) {
+    if (filterDate && filterDate instanceof Date && !isNaN(filterDate.getTime())) {
       const bookingDate = new Date(b.startAt).toLocaleDateString('ru-RU', {
         timeZone: 'Europe/Moscow',
       })
@@ -185,12 +184,9 @@ function DashboardPage() {
 
   return (
     <Container size="xl" py="xl">
-      <Group mb="xl">
-        <Button component={Link} to="/" variant="subtle">
-          ← На главную
-        </Button>
-        <Title order={1}>Панель владельца</Title>
-      </Group>
+      <Title order={1} mb="xl">
+        Панель владельца
+      </Title>
 
       {/* Meeting Types Section */}
       <Title order={2} mb="md">

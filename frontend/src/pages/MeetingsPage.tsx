@@ -143,8 +143,9 @@ function MeetingsPage() {
       })
 
       if (res.status === 409) {
-        setConflictError('Этот слот уже занят. Выберите другой.')
-        setSlots([])
+        const errorData = await res.json()
+        setConflictError(errorData?.error?.message || 'Этот слот уже занят. Выберите другой.')
+        setSelectedSlot(null)
         if (selectedDate && selectedType) {
           await loadSlots(selectedDate, selectedType.id)
         }
@@ -153,6 +154,10 @@ function MeetingsPage() {
       }
 
       if (!res.ok) {
+        const errorData = await res.json().catch(() => null)
+        setConflictError(
+          errorData?.error?.message || 'Произошла ошибка при бронировании. Попробуйте ещё раз.',
+        )
         setBooking(false)
         return
       }
@@ -165,6 +170,7 @@ function MeetingsPage() {
         guestEmail: data.guestEmail,
       })
     } catch {
+      setConflictError('Ошибка сети. Проверьте подключение и попробуйте ещё раз.')
       setBooking(false)
     }
   }
