@@ -1,16 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Button,
-  Card,
-  Container,
-  Flex,
-  Grid,
-  Group,
-  Loader,
-  Paper,
-  Text,
-  Title,
-} from '@mantine/core'
+import { Button, Card, Container, Flex, Grid, Group, Loader, Text, Title } from '@mantine/core'
 
 interface MeetingType {
   id: number
@@ -61,6 +50,7 @@ function MeetingsPage() {
   const [selectedType, setSelectedType] = useState<MeetingType | null>(null)
   const [dates] = useState<Date[]>(() => getWeekdays())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
 
@@ -86,6 +76,7 @@ function MeetingsPage() {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
+    setSelectedSlot(null)
     if (selectedType) {
       loadSlots(date, selectedType.id)
     }
@@ -144,6 +135,7 @@ function MeetingsPage() {
           onClick={() => {
             setSelectedType(null)
             setSelectedDate(null)
+            setSelectedSlot(null)
             setSlots([])
           }}
         >
@@ -186,13 +178,22 @@ function MeetingsPage() {
             Доступные слоты:
           </Text>
           <Flex gap="xs" wrap="wrap">
-            {slots.map((slot, idx) => (
-              <Paper key={idx} withBorder p="xs" radius="md">
-                <Text size="sm">
+            {slots.map((slot, idx) => {
+              const isSelected =
+                selectedSlot &&
+                selectedSlot.startAt === slot.startAt &&
+                selectedSlot.endAt === slot.endAt
+              return (
+                <Button
+                  key={idx}
+                  variant={isSelected ? 'filled' : 'outline'}
+                  onClick={() => setSelectedSlot(slot)}
+                  size="sm"
+                >
                   {formatTime(slot.startAt)}–{formatTime(slot.endAt)}
-                </Text>
-              </Paper>
-            ))}
+                </Button>
+              )
+            })}
           </Flex>
         </>
       ) : selectedDate ? (

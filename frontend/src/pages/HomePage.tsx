@@ -22,11 +22,13 @@ function HomePage() {
           Как записаться
         </Title>
 
-        <List ta="center" mb="xl">
-          {steps.map((step, index) => (
-            <List.Item key={index}>{step}</List.Item>
-          ))}
-        </List>
+        <Box mb="xl" style={{ display: 'flex', justifyContent: 'center' }}>
+          <List size="lg" spacing="md" center>
+            {steps.map((step, index) => (
+              <List.Item key={index}>{step}</List.Item>
+            ))}
+          </List>
+        </Box>
 
         <Box ta="center">
           <Button component={Link} to="/meetings" size="lg">
