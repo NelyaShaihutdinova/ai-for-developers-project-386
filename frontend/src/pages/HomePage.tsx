@@ -6,7 +6,7 @@ const steps = ['Выберите тип встречи', 'Откройте ка�
 
 function HomePage() {
   return (
-    <Flex direction="column" miH="100vh">
+    <Flex direction="column" mih="100vh">
       <Box py="xs" px="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
         <Text size="lg" fw={600}>
           {OWNER_NAME}

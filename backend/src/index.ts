@@ -1,4 +1,5 @@
 import { Hono, Context } from 'hono'
+import { cors } from 'hono/cors'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { eq, and, gt } from 'drizzle-orm'
 import { z } from 'zod'
@@ -6,6 +7,13 @@ import { db } from './db'
 import { meetingTypes, bookings } from './db/schema'
 
 const app = new Hono()
+
+// CORS
+app.use('/*', cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  allowMethods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type'],
+}))
 
 // Schemas
 const createMeetingTypeSchema = z.object({
