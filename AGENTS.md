@@ -14,15 +14,17 @@ Single pre-defined calendar owner, no auth. Guests book without registration. 14
 All via mise. Never run npm directly at root.
 
 ```bash
-mise run check          # lint + format:check + typecheck + test
+mise run check          # lint + format:check + typecheck + test (includes E2E)
 mise run dev            # both dev servers
 mise run dev:backend    # backend only
 mise run dev:frontend   # frontend only
 mise run build          # build both
 mise run generate:api   # TypeSpec → OpenAPI → SDK (runs typespec:compile + frontend SDK generation)
+mise run test:e2e       # browser E2E tests with Playwright (builds frontend, starts server, runs tests)
 ```
 
 Single test: `cd backend && npm run test` or `cd frontend && npm run test`
+Browser E2E: `mise run test:e2e` — requires Chromium installed (`npx playwright install chromium`)
 
 ## Git Hooks
 
