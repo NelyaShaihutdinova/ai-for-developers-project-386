@@ -9,19 +9,26 @@ import { meetingTypes, bookings } from './db/schema'
 const app = new Hono()
 
 // CORS
-app.use('/*', cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  allowMethods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
-}))
+app.use(
+  '/*',
+  cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    allowMethods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+  }),
+)
 
 // Schemas
 const createMeetingTypeSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(1000),
-  durationMinutes: z.number().int().positive().refine((val) => val % 15 === 0, {
-    message: 'durationMinutes must be a multiple of 15',
-  }),
+  durationMinutes: z
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val % 15 === 0, {
+      message: 'durationMinutes must be a multiple of 15',
+    }),
 })
 
 const updateMeetingTypeSchema = z.object({
@@ -49,20 +56,14 @@ app.get('/health', (c) => {
 
 // GET /api/meeting-types - list active types
 app.get('/api/meeting-types', async (c) => {
-  const types = await db
-    .select()
-    .from(meetingTypes)
-    .where(eq(meetingTypes.isActive, true))
+  const types = await db.select().from(meetingTypes).where(eq(meetingTypes.isActive, true))
   return c.json(types)
 })
 
 // GET /api/meeting-types/:id - get by id
 app.get('/api/meeting-types/:id', async (c) => {
   const id = parseInt(c.req.param('id'))
-  const types = await db
-    .select()
-    .from(meetingTypes)
-    .where(eq(meetingTypes.id, id))
+  const types = await db.select().from(meetingTypes).where(eq(meetingTypes.id, id))
   if (types.length === 0) {
     return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
   }
@@ -78,7 +79,7 @@ app.post('/api/meeting-types', async (c) => {
       'VALIDATION_ERROR',
       validation.error.issues.map((e) => e.message).join(', '),
       400,
-      c
+      c,
     )
   }
 
@@ -104,14 +105,11 @@ app.patch('/api/meeting-types/:id', async (c) => {
       'VALIDATION_ERROR',
       validation.error.issues.map((e) => e.message).join(', '),
       400,
-      c
+      c,
     )
   }
 
-  const existing = await db
-    .select()
-    .from(meetingTypes)
-    .where(eq(meetingTypes.id, id))
+  const existing = await db.select().from(meetingTypes).where(eq(meetingTypes.id, id))
 
   if (existing.length === 0) {
     return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
@@ -159,10 +157,7 @@ app.get('/api/slots', async (c) => {
   }
 
   // Get meeting type
-  const mtResult = await db
-    .select()
-    .from(meetingTypes)
-    .where(eq(meetingTypes.id, meetingTypeId))
+  const mtResult = await db.select().from(meetingTypes).where(eq(meetingTypes.id, meetingTypeId))
 
   if (mtResult.length === 0 || !mtResult[0].isActive) {
     return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
@@ -178,7 +173,7 @@ app.get('/api/slots', async (c) => {
 
   // Working hours 09:00-18:00 in UTC (Moscow is UTC+3, so 09:00 MSK = 06:00 UTC)
   const startHour = 6 // 09:00 MSK in UTC
-  const endHour = 15  // 18:00 MSK in UTC
+  const endHour = 15 // 18:00 MSK in UTC
   const slots: { startAt: string; endAt: string }[] = []
 
   for (let hour = startHour; hour < endHour; hour++) {
@@ -190,7 +185,10 @@ app.get('/api/slots', async (c) => {
       slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + duration)
 
       // Check if slot ends by 18:00 MSK (15:00 UTC)
-      if (slotEnd.getUTCHours() > endHour || (slotEnd.getUTCHours() === endHour && slotEnd.getUTCMinutes() > 0)) {
+      if (
+        slotEnd.getUTCHours() > endHour ||
+        (slotEnd.getUTCHours() === endHour && slotEnd.getUTCMinutes() > 0)
+      ) {
         continue
       }
 
@@ -221,17 +219,14 @@ app.post('/api/bookings', async (c) => {
       'VALIDATION_ERROR',
       validation.error.issues.map((e) => e.message).join(', '),
       400,
-      c
+      c,
     )
   }
 
   const { meetingTypeId, startAt, guestName, guestEmail } = validation.data
 
   // Get meeting type
-  const mtResult = await db
-    .select()
-    .from(meetingTypes)
-    .where(eq(meetingTypes.id, meetingTypeId))
+  const mtResult = await db.select().from(meetingTypes).where(eq(meetingTypes.id, meetingTypeId))
 
   if (mtResult.length === 0 || !mtResult[0].isActive) {
     return errorResponse('NOT_FOUND', 'Meeting type not found', 404, c)
@@ -250,9 +245,7 @@ app.post('/api/bookings', async (c) => {
       // Get all bookings and filter in JS
       const allBookings = tx.select().from(bookings).all()
 
-      const hasConflict = allBookings.some(
-        (b) => b.startAt <= endStr && b.endAt > startStr
-      )
+      const hasConflict = allBookings.some((b) => b.startAt <= endStr && b.endAt > startStr)
 
       if (hasConflict) {
         throw new Error('CONFLICT')
@@ -261,7 +254,7 @@ app.post('/api/bookings', async (c) => {
       // Insert booking using raw SQL to avoid circular structure
       const insertResult = tx.run(
         `INSERT INTO bookings (meeting_type_id, start_at, end_at, guest_name, guest_email)
-         VALUES (${meetingTypeId}, '${startStr}', '${endStr}', '${guestName}', '${guestEmail}')`
+         VALUES (${meetingTypeId}, '${startStr}', '${endStr}', '${guestName}', '${guestEmail}')`,
       )
 
       const newId = insertResult.lastInsertRowid

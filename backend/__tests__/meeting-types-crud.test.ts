@@ -25,13 +25,11 @@ describe('MeetingTypes CRUD', () => {
 
   describe('POST /api/meeting-types', () => {
     it('creates a meeting type and returns 201', async () => {
-      const res = await request('http://localhost:3097')
-        .post('/api/meeting-types')
-        .send({
-          name: 'Консультация',
-          description: 'Индивидуальная консультация',
-          durationMinutes: 30,
-        })
+      const res = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Консультация',
+        description: 'Индивидуальная консультация',
+        durationMinutes: 30,
+      })
       expect(res.status).toBe(201)
       expect(res.body.name).toBe('Консультация')
       expect(res.body.durationMinutes).toBe(30)
@@ -41,13 +39,11 @@ describe('MeetingTypes CRUD', () => {
     })
 
     it('returns 400 for invalid duration (not multiple of 15)', async () => {
-      const res = await request('http://localhost:3097')
-        .post('/api/meeting-types')
-        .send({
-          name: 'Тест',
-          description: 'Тест',
-          durationMinutes: 20,
-        })
+      const res = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Тест',
+        description: 'Тест',
+        durationMinutes: 20,
+      })
       expect(res.status).toBe(400)
       expect(res.body.error.code).toBe('VALIDATION_ERROR')
     })
@@ -80,35 +76,31 @@ describe('MeetingTypes CRUD', () => {
 
   describe('POST /api/meeting-types/:id/deactivate', () => {
     it('deactivates a meeting type', async () => {
-      const createRes = await request('http://localhost:3097')
-        .post('/api/meeting-types')
-        .send({
-          name: 'Для деактивации',
-          description: 'Будет деактивирован',
-          durationMinutes: 15,
-        })
+      const createRes = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Для деактивации',
+        description: 'Будет деактивирован',
+        durationMinutes: 15,
+      })
       const id = createRes.body.id
 
       const deactRes = await request('http://localhost:3097').post(
-        `/api/meeting-types/${id}/deactivate`
+        `/api/meeting-types/${id}/deactivate`,
       )
       expect(deactRes.status).toBe(200)
       expect(deactRes.body.isActive).toBe(false)
     })
 
     it('is idempotent - deactivating twice returns same result', async () => {
-      const createRes = await request('http://localhost:3097')
-        .post('/api/meeting-types')
-        .send({
-          name: 'Идемпотентный тест',
-          description: 'Тест',
-          durationMinutes: 15,
-        })
+      const createRes = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Идемпотентный тест',
+        description: 'Тест',
+        durationMinutes: 15,
+      })
       const id = createRes.body.id
 
       await request('http://localhost:3097').post(`/api/meeting-types/${id}/deactivate`)
       const res2 = await request('http://localhost:3097').post(
-        `/api/meeting-types/${id}/deactivate`
+        `/api/meeting-types/${id}/deactivate`,
       )
       expect(res2.status).toBe(404)
     })

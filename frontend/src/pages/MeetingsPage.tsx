@@ -96,7 +96,7 @@ function MeetingsPage() {
   })
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/meeting-types')
+    fetch('/api/meeting-types')
       .then((res) => res.json())
       .then((data) => setMeetingTypes(data))
   }, [])
@@ -105,9 +105,7 @@ function MeetingsPage() {
     setLoadingSlots(true)
     try {
       const dateStr = formatDate(date)
-      const res = await fetch(
-        `http://localhost:3000/api/slots?meetingTypeId=${meetingTypeId}&date=${dateStr}`,
-      )
+      const res = await fetch(`/api/slots?meetingTypeId=${meetingTypeId}&date=${dateStr}`)
       const data = await res.json()
       setSlots(data)
     } finally {
@@ -130,7 +128,7 @@ function MeetingsPage() {
     setConflictError('')
 
     try {
-      const res = await fetch('http://localhost:3000/api/bookings', {
+      const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

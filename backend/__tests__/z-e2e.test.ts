@@ -18,13 +18,11 @@ describe('E2E: Full booking flow', () => {
     db.delete(bookings).run()
 
     // Create a meeting type with a unique name to avoid conflicts
-    const res = await request('http://localhost:3095')
-      .post('/api/meeting-types')
-      .send({
-        name: 'E2E Консультация',
-        description: 'E2E тест',
-        durationMinutes: 30,
-      })
+    const res = await request('http://localhost:3095').post('/api/meeting-types').send({
+      name: 'E2E Консультация',
+      description: 'E2E тест',
+      durationMinutes: 30,
+    })
     meetingTypeId = res.body.id
 
     // Use a unique future date (year 2030 to avoid all conflicts)
@@ -47,8 +45,9 @@ describe('E2E: Full booking flow', () => {
     expect(mt.durationMinutes).toBe(30)
 
     // Step 2: View available slots for a date
-    const slotsRes = await request('http://localhost:3095')
-      .get(`/api/slots?meetingTypeId=${meetingTypeId}&date=${testDate}`)
+    const slotsRes = await request('http://localhost:3095').get(
+      `/api/slots?meetingTypeId=${meetingTypeId}&date=${testDate}`,
+    )
     expect(slotsRes.status).toBe(200)
     expect(Array.isArray(slotsRes.body)).toBe(true)
     expect(slotsRes.body.length).toBeGreaterThan(0)
@@ -59,14 +58,12 @@ describe('E2E: Full booking flow', () => {
     expect(slot).toHaveProperty('endAt')
 
     // Step 3: Book a slot
-    const bookingRes = await request('http://localhost:3095')
-      .post('/api/bookings')
-      .send({
-        meetingTypeId,
-        startAt: slot.startAt,
-        guestName: 'Иван Петров',
-        guestEmail: 'ivan@example.com',
-      })
+    const bookingRes = await request('http://localhost:3095').post('/api/bookings').send({
+      meetingTypeId,
+      startAt: slot.startAt,
+      guestName: 'Иван Петров',
+      guestEmail: 'ivan@example.com',
+    })
     expect(bookingRes.status).toBe(201)
     expect(bookingRes.body.guestName).toBe('Иван Петров')
     expect(bookingRes.body.guestEmail).toBe('ivan@example.com')
@@ -85,30 +82,27 @@ describe('E2E: Full booking flow', () => {
     const localTestDate = '2031-07-20'
 
     // Get available slots
-    const slotsRes = await request('http://localhost:3095')
-      .get(`/api/slots?meetingTypeId=${meetingTypeId}&date=${localTestDate}`)
+    const slotsRes = await request('http://localhost:3095').get(
+      `/api/slots?meetingTypeId=${meetingTypeId}&date=${localTestDate}`,
+    )
     const slot = slotsRes.body[0]
 
     // First booking succeeds
-    const res1 = await request('http://localhost:3095')
-      .post('/api/bookings')
-      .send({
-        meetingTypeId,
-        startAt: slot.startAt,
-        guestName: 'Анна',
-        guestEmail: 'anna@example.com',
-      })
+    const res1 = await request('http://localhost:3095').post('/api/bookings').send({
+      meetingTypeId,
+      startAt: slot.startAt,
+      guestName: 'Анна',
+      guestEmail: 'anna@example.com',
+    })
     expect(res1.status).toBe(201)
 
     // Second booking for same slot fails with 409
-    const res2 = await request('http://localhost:3095')
-      .post('/api/bookings')
-      .send({
-        meetingTypeId,
-        startAt: slot.startAt,
-        guestName: 'Борис',
-        guestEmail: 'boris@example.com',
-      })
+    const res2 = await request('http://localhost:3095').post('/api/bookings').send({
+      meetingTypeId,
+      startAt: slot.startAt,
+      guestName: 'Борис',
+      guestEmail: 'boris@example.com',
+    })
     expect(res2.status).toBe(409)
     expect(res2.body.error.code).toBe('CONFLICT')
   })

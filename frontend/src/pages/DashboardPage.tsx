@@ -34,8 +34,8 @@ interface Booking {
   createdAt: string
 }
 
-const API_BASE = 'http://localhost:3000/api/meeting-types'
-const BOOKINGS_API = 'http://localhost:3000/api/bookings'
+const API_BASE = '/api/meeting-types'
+const BOOKINGS_API = '/api/bookings'
 
 function formatTime(iso: string): string {
   const d = new Date(iso)
