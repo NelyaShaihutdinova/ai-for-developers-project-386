@@ -26,7 +26,8 @@ jobs:
         run: mise run install
 
       - name: Install Playwright browsers
-        run: cd e2e && npx playwright install --with-deps chromium
+        run: npm install && npx playwright install --with-deps chromium
+        working-directory: e2e
 
       - name: Generate API SDK
         run: mise run generate:api

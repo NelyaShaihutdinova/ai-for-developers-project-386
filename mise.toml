@@ -18,6 +18,7 @@ description = "Install all dependencies"
 run = [
   "cd backend && npm install",
   "cd frontend && npm install",
+  "cd e2e && npm install",
 ]
 
 [tasks.dev]
