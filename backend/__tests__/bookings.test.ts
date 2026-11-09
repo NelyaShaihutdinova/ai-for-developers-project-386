@@ -70,6 +70,71 @@ describe('Bookings', () => {
       expect(res.body.error.code).toBe('CONFLICT')
     })
 
+    it('returns 409 for partial overlap of DIFFERENT meeting types', async () => {
+      // Create two meeting types with different durations
+      const typeA = await request('http://localhost:3096').post('/api/meeting-types').send({
+        name: 'Длинная встреча',
+        description: '60 минут',
+        durationMinutes: 60,
+      })
+      const typeB = await request('http://localhost:3096').post('/api/meeting-types').send({
+        name: 'Короткая встреча',
+        description: '30 минут',
+        durationMinutes: 30,
+      })
+
+      // Book type A at 10:00 MSK (07:00 UTC) — occupies 07:00-08:00 UTC
+      const bookingA = await request('http://localhost:3096').post('/api/bookings').send({
+        meetingTypeId: typeA.body.id,
+        startAt: '2029-10-01T07:00:00Z',
+        guestName: 'Анна',
+        guestEmail: 'anna@test.com',
+      })
+      expect(bookingA.status).toBe(201)
+
+      // Try to book type B at 10:30 MSK (07:30 UTC) — would occupy 07:30-08:00 UTC
+      // This PARTIALLY overlaps with type A (07:00-08:00), should return 409
+      const res = await request('http://localhost:3096').post('/api/bookings').send({
+        meetingTypeId: typeB.body.id,
+        startAt: '2029-10-01T07:30:00Z',
+        guestName: 'Борис',
+        guestEmail: 'boris@test.com',
+      })
+      expect(res.status).toBe(409)
+      expect(res.body.error.code).toBe('CONFLICT')
+    })
+
+    it('allows booking immediately after another booking (no overlap)', async () => {
+      const typeA = await request('http://localhost:3096').post('/api/meeting-types').send({
+        name: 'Встреча A',
+        description: '30 минут',
+        durationMinutes: 30,
+      })
+      const typeB = await request('http://localhost:3096').post('/api/meeting-types').send({
+        name: 'Встреча B',
+        description: '45 минут',
+        durationMinutes: 45,
+      })
+
+      // Book type A at 08:00 UTC — occupies 08:00-08:30 UTC
+      const bookingA = await request('http://localhost:3096').post('/api/bookings').send({
+        meetingTypeId: typeA.body.id,
+        startAt: '2029-11-01T08:00:00Z',
+        guestName: 'Анна',
+        guestEmail: 'anna@test.com',
+      })
+      expect(bookingA.status).toBe(201)
+
+      // Book type B at 08:30 UTC — starts exactly when A ends, should be allowed
+      const bookingB = await request('http://localhost:3096').post('/api/bookings').send({
+        meetingTypeId: typeB.body.id,
+        startAt: '2029-11-01T08:30:00Z',
+        guestName: 'Борис',
+        guestEmail: 'boris@test.com',
+      })
+      expect(bookingB.status).toBe(201)
+    })
+
     it('returns 404 for inactive meeting type', async () => {
       // Deactivate the meeting type
       await request('http://localhost:3096').post(`/api/meeting-types/${meetingTypeId}/deactivate`)
