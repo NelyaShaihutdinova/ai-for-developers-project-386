@@ -52,7 +52,7 @@ done
 # Run Playwright tests
 echo "Running E2E tests..."
 cd "$ROOT/e2e"
-BASE_URL="http://localhost:$PORT" npx playwright test
+BASE_URL="http://localhost:$PORT" npm test
 TEST_EXIT=$?
 
 # Cleanup
