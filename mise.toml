@@ -48,6 +48,16 @@ description = "Build frontend"
 dir = "frontend"
 run = "npm run build"
 
+[tasks."typespec:compile"]
+description = "Compile TypeSpec to OpenAPI"
+dir = "backend"
+run = "npm run typespec:compile"
+
+[tasks."generate:api"]
+description = "Generate SDK from OpenAPI spec"
+depends = ["typespec:compile"]
+run = "cd frontend && npm run generate:api"
+
 [tasks.test]
 description = "Run all tests"
 depends = ["test:backend", "test:frontend"]

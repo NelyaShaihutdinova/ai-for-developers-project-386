@@ -10,6 +10,7 @@ export default [
   js.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/api/generated/**'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

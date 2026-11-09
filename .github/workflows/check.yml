@@ -25,5 +25,17 @@ jobs:
       - name: Install dependencies
         run: mise run install
 
+      - name: Generate API SDK
+        run: mise run generate:api
+
+      - name: Verify SDK matches spec
+        run: |
+          if [ -n "$(git status --porcelain frontend/src/api/generated/)" ]; then
+            echo "Generated SDK is out of sync with OpenAPI spec."
+            echo "Run 'mise run generate:api' locally and commit the changes."
+            git diff frontend/src/api/generated/
+            exit 1
+          fi
+
       - name: Run checks
         run: mise run check

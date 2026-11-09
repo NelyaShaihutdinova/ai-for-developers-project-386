@@ -12,9 +12,11 @@
     "format:fix": "prettier --write src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:api": "openapi-ts"
   },
   "dependencies": {
+    "@hey-api/client-fetch": "^0.13.1",
     "@mantine/core": "^9.7.5",
     "@mantine/dates": "^9.7.5",
     "@mantine/form": "^9.7.5",
@@ -26,6 +28,7 @@
     "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.2",

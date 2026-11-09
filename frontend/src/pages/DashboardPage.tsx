@@ -13,29 +13,16 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconPencil, IconTrash } from '@tabler/icons-react'
-
-interface MeetingType {
-  id: number
-  name: string
-  description: string
-  durationMinutes: number
-  isActive: boolean
-  createdAt: string
-}
-
-interface Booking {
-  id: number
-  meetingTypeId: number
-  meetingTypeName: string
-  startAt: string
-  endAt: string
-  guestName: string
-  guestEmail: string
-  createdAt: string
-}
-
-const API_BASE = '/api/meeting-types'
-const BOOKINGS_API = '/api/bookings'
+import {
+  apiClient,
+  meetingTypesCreate,
+  meetingTypesDeactivate,
+  meetingTypesList,
+  meetingTypesUpdate,
+  bookingsList,
+  type MeetingType,
+  type BookingWithTypeName,
+} from '../api'
 
 function formatTime(iso: string): string {
   const d = new Date(iso)
@@ -58,11 +45,10 @@ function formatDate(iso: string): string {
 
 function DashboardPage() {
   const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [bookings, setBookings] = useState<BookingWithTypeName[]>([])
   const [modalOpened, setModalOpened] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
-  // Filters
   const [filterType, setFilterType] = useState<string | null>(null)
 
   const form = useForm({
@@ -84,31 +70,36 @@ function DashboardPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [mtRes, bkRes] = await Promise.all([fetch(API_BASE), fetch(BOOKINGS_API)])
-      const [mtData, bkData] = await Promise.all([mtRes.json(), bkRes.json()])
+      const [mtRes, bkRes] = await Promise.all([
+        meetingTypesList({ client: apiClient }),
+        bookingsList({ client: apiClient }),
+      ])
       if (isMounted.current) {
-        setMeetingTypes(mtData)
-        setBookings(bkData)
+        setMeetingTypes(mtRes.data || [])
+        setBookings(bkRes.data || [])
       }
     }
     load()
   }, [])
 
   const loadMeetingTypes = async () => {
-    const res = await fetch(API_BASE)
-    const data = await res.json()
-    setMeetingTypes(data)
+    const res = await meetingTypesList({ client: apiClient })
+    setMeetingTypes(res.data || [])
   }
 
   const handleSubmit = async (values: typeof form.values) => {
-    const method = editingId ? 'PATCH' : 'POST'
-    const url = editingId ? `${API_BASE}/${editingId}` : API_BASE
-
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
+    if (editingId) {
+      await meetingTypesUpdate({
+        client: apiClient,
+        path: { id: editingId },
+        body: { body: values },
+      })
+    } else {
+      await meetingTypesCreate({
+        client: apiClient,
+        body: { body: values },
+      })
+    }
 
     form.reset()
     setEditingId(null)
@@ -127,11 +118,10 @@ function DashboardPage() {
   }
 
   const handleDeactivate = async (id: number) => {
-    await fetch(`${API_BASE}/${id}/deactivate`, { method: 'POST' })
+    await meetingTypesDeactivate({ client: apiClient, path: { id } })
     loadMeetingTypes()
   }
 
-  // Filtered bookings
   const filteredBookings = bookings.filter((b) => {
     if (filterType && b.meetingTypeId !== Number(filterType)) return false
     return true
@@ -179,7 +169,6 @@ function DashboardPage() {
         Панель владельца
       </Title>
 
-      {/* Meeting Types Section */}
       <Title order={2} mb="md">
         Типы встреч
       </Title>
@@ -220,7 +209,6 @@ function DashboardPage() {
         </Table.Tbody>
       </Table>
 
-      {/* Bookings Section */}
       <Title order={2} mb="md">
         Предстоящие встречи
       </Title>

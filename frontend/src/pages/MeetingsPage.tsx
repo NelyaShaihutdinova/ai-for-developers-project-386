@@ -14,20 +14,9 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
-
-interface MeetingType {
-  id: number
-  name: string
-  description: string
-  durationMinutes: number
-  isActive: boolean
-  createdAt: string
-}
-
-interface Slot {
-  startAt: string
-  endAt: string
-}
+import { Link } from 'react-router-dom'
+import { apiClient, bookingsCreate, meetingTypesList, slotsList } from '../api'
+import type { MeetingType, Slot } from '../api'
 
 function formatTime(isoString: string): string {
   const date = new Date(isoString)
@@ -68,8 +57,6 @@ function getWeekdays(): Date[] {
   return dates
 }
 
-import { Link } from 'react-router-dom'
-
 function MeetingsPage() {
   const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([])
   const [selectedType, setSelectedType] = useState<MeetingType | null>(null)
@@ -96,18 +83,20 @@ function MeetingsPage() {
   })
 
   useEffect(() => {
-    fetch('/api/meeting-types')
-      .then((res) => res.json())
-      .then((data) => setMeetingTypes(data))
+    meetingTypesList({ client: apiClient }).then((res) => {
+      setMeetingTypes(res.data || [])
+    })
   }, [])
 
   const loadSlots = useCallback(async (date: Date, meetingTypeId: number) => {
     setLoadingSlots(true)
     try {
       const dateStr = formatDate(date)
-      const res = await fetch(`/api/slots?meetingTypeId=${meetingTypeId}&date=${dateStr}`)
-      const data = await res.json()
-      setSlots(data)
+      const res = await slotsList({
+        client: apiClient,
+        query: { meetingTypeId, date: dateStr },
+      })
+      setSlots((res.data as Slot[]) || [])
     } finally {
       setLoadingSlots(false)
     }
@@ -128,19 +117,20 @@ function MeetingsPage() {
     setConflictError('')
 
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          meetingTypeId: selectedType.id,
-          startAt: selectedSlot.startAt,
-          guestName: values.guestName,
-          guestEmail: values.guestEmail,
-        }),
+      const res = await bookingsCreate({
+        client: apiClient,
+        body: {
+          body: {
+            meetingTypeId: selectedType.id,
+            startAt: selectedSlot.startAt,
+            guestName: values.guestName,
+            guestEmail: values.guestEmail,
+          },
+        },
       })
 
-      if (res.status === 409) {
-        const errorData = await res.json()
+      if (res.response.status === 409) {
+        const errorData = res.data as { error?: { message?: string } } | undefined
         setConflictError(errorData?.error?.message || 'Этот слот уже занят. Выберите другой.')
         setSelectedSlot(null)
         if (selectedDate && selectedType) {
@@ -150,8 +140,8 @@ function MeetingsPage() {
         return
       }
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null)
+      if (!res.response.ok) {
+        const errorData = (res.data as { error?: { message?: string } }) || null
         setConflictError(
           errorData?.error?.message || 'Произошла ошибка при бронировании. Попробуйте ещё раз.',
         )
@@ -159,7 +149,12 @@ function MeetingsPage() {
         return
       }
 
-      const data = await res.json()
+      const data = res.data as {
+        startAt: string
+        endAt: string
+        guestName: string
+        guestEmail: string
+      }
       setConfirmedBooking({
         startAt: data.startAt,
         endAt: data.endAt,
