@@ -11,6 +11,9 @@ docs
 hk.pkl
 mise.toml
 skills-lock.json
+.env
+.env.*
+!.env.example
 backend/__tests__
 backend/node_modules
 backend/data
