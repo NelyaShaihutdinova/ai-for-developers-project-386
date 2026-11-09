@@ -60,7 +60,7 @@ run = "cd frontend && npm run generate:api"
 
 [tasks.test]
 description = "Run all tests"
-depends = ["test:backend", "test:frontend"]
+depends = ["test:backend", "test:frontend", "test:e2e"]
 
 [tasks."test:backend"]
 description = "Run backend tests"
@@ -71,6 +71,10 @@ run = "npm run test"
 description = "Run frontend tests"
 dir = "frontend"
 run = "npm run test"
+
+[tasks."test:e2e"]
+description = "Run browser E2E tests with Playwright"
+run = "bash scripts/e2e.sh"
 
 [tasks.lint]
 description = "Lint both projects"

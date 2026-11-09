@@ -92,12 +92,12 @@ function DashboardPage() {
       await meetingTypesUpdate({
         client: apiClient,
         path: { id: editingId },
-        body: { body: values },
+        body: values,
       })
     } else {
       await meetingTypesCreate({
         client: apiClient,
-        body: { body: values },
+        body: values,
       })
     }
 

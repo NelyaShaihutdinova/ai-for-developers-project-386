@@ -63,8 +63,8 @@ interface Slots {
 interface MeetingTypes {
   @get list(): MeetingType[];
   @get getById(@path id: int32): MeetingType | NotFound;
-  create(body: MeetingTypeCreate): MeetingType;
-  @patch update(@path id: int32, body: MeetingTypeUpdate): MeetingType | NotFound;
+  @post create(...MeetingTypeCreate): MeetingType;
+  @patch update(@path id: int32, ...MeetingTypeUpdate): MeetingType | NotFound;
   @post deactivate(@path id: int32): MeetingType | NotFound;
 }
 
@@ -88,7 +88,7 @@ model Booking {
 @route("/api/bookings")
 interface Bookings {
   @get list(): BookingWithTypeName[];
-  create(body: BookingCreate): Booking;
+  @post create(...BookingCreate): Booking;
 }
 
 model BookingWithTypeName {

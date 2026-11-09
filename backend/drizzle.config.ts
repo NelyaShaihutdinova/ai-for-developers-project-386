@@ -5,6 +5,6 @@ export default defineConfig({
   out: './migrations',
   dialect: 'sqlite',
   dbCredentials: {
-    url: 'data/calendar.db',
+    url: process.env.DB_PATH || 'data/calendar.db',
   },
 })

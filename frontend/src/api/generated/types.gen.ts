@@ -91,9 +91,7 @@ export type BookingsListResponses = {
 export type BookingsListResponse = BookingsListResponses[keyof BookingsListResponses];
 
 export type BookingsCreateData = {
-    body: {
-        body: BookingCreate;
-    };
+    body: BookingCreate;
     path?: never;
     query?: never;
     url: '/api/bookings';
@@ -125,9 +123,7 @@ export type MeetingTypesListResponses = {
 export type MeetingTypesListResponse = MeetingTypesListResponses[keyof MeetingTypesListResponses];
 
 export type MeetingTypesCreateData = {
-    body: {
-        body: MeetingTypeCreate;
-    };
+    body: MeetingTypeCreate;
     path?: never;
     query?: never;
     url: '/api/meeting-types';
@@ -161,9 +157,7 @@ export type MeetingTypesGetByIdResponses = {
 export type MeetingTypesGetByIdResponse = MeetingTypesGetByIdResponses[keyof MeetingTypesGetByIdResponses];
 
 export type MeetingTypesUpdateData = {
-    body: {
-        body: MeetingTypeUpdate;
-    };
+    body: MeetingTypeUpdate;
     path: {
         id: number;
     };

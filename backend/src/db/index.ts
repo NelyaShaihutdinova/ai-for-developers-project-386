@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import * as schema from './schema'
 
-const sqlite = new Database('data/calendar.db')
+const dbPath = process.env.DB_PATH || 'data/calendar.db'
+const sqlite = new Database(dbPath)
 
 export const db = drizzle(sqlite, { schema })

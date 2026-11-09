@@ -120,12 +120,10 @@ function MeetingsPage() {
       const res = await bookingsCreate({
         client: apiClient,
         body: {
-          body: {
-            meetingTypeId: selectedType.id,
-            startAt: selectedSlot.startAt,
-            guestName: values.guestName,
-            guestEmail: values.guestEmail,
-          },
+          meetingTypeId: selectedType.id,
+          startAt: selectedSlot.startAt,
+          guestName: values.guestName,
+          guestEmail: values.guestEmail,
         },
       })
 

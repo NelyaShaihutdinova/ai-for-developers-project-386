@@ -32,12 +32,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                body:
-                  $ref: '#/components/schemas/BookingCreate'
-              required:
-                - body
+              $ref: '#/components/schemas/BookingCreate'
   /api/meeting-types:
     get:
       operationId: MeetingTypes_list
@@ -66,12 +61,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                body:
-                  $ref: '#/components/schemas/MeetingTypeCreate'
-              required:
-                - body
+              $ref: '#/components/schemas/MeetingTypeCreate'
   /api/meeting-types/{id}:
     get:
       operationId: MeetingTypes_getById
@@ -114,12 +104,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                body:
-                  $ref: '#/components/schemas/MeetingTypeUpdate'
-              required:
-                - body
+              $ref: '#/components/schemas/MeetingTypeUpdate'
     post:
       operationId: MeetingTypes_deactivate
       parameters:
