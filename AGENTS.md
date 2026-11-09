@@ -7,7 +7,7 @@ Calendar booking service (Hexlet educational project). Backend + frontend monore
 - **backend/** — Hono (Node.js), TypeScript (CommonJS), vitest + supertest
 - **frontend/** — Vite + React 19 + TypeScript (ESM), Mantine UI, vitest + jsdom
 
-Single pre-defined calendar owner, no auth. Guests book without registration. 14-day booking window. No double-booking or interval overlap. TypeSpec → OpenAPI → generated client SDK planned.
+Single pre-defined calendar owner, no auth. Guests book without registration. 14-day booking window. No double-booking or interval overlap. TypeSpec → OpenAPI → generated client SDK.
 
 ## Commands
 
@@ -19,6 +19,7 @@ mise run dev            # both dev servers
 mise run dev:backend    # backend only
 mise run dev:frontend   # frontend only
 mise run build          # build both
+mise run generate:api   # TypeSpec → OpenAPI → SDK (runs typespec:compile + frontend SDK generation)
 ```
 
 Single test: `cd backend && npm run test` or `cd frontend && npm run test`
@@ -42,6 +43,19 @@ Default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-huma
 ### Domain docs
 
 Single-context: `GLOSSARY.md` at root, ADRs in `docs/adr/`. See `docs/agents/domain.md`.
+
+## Generated files
+
+The following paths are generated automatically and MUST NOT be edited manually:
+
+| Path | Source | Generator |
+|---|---|---|
+| `backend/openapi/openapi.yaml` | `backend/typespec/main.tsp` | `@typespec/openapi3` |
+| `frontend/src/api/generated/` | `backend/openapi/openapi.yaml` | `@hey-api/openapi-ts` |
+
+To regenerate: `mise run generate:api` (compiles TypeSpec → OpenAPI → SDK in one command).
+
+CI runs `generate:api` on every push and fails if the generated files differ from what is committed. If you modify TypeSpec or OpenAPI, always regenerate and commit the updated SDK.
 
 ## Conventional Commits
 
