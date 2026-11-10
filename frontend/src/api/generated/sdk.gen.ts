@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BookingsCreateData, BookingsCreateResponses, BookingsListData, BookingsListResponses, MeetingTypesCreateData, MeetingTypesCreateResponses, MeetingTypesDeactivateData, MeetingTypesDeactivateResponses, MeetingTypesGetByIdData, MeetingTypesGetByIdResponses, MeetingTypesListData, MeetingTypesListResponses, MeetingTypesUpdateData, MeetingTypesUpdateResponses, SlotsListData, SlotsListResponses } from './types.gen';
+import type { BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListResponses, MeetingTypesCreateData, MeetingTypesCreateResponses, MeetingTypesDeactivateData, MeetingTypesDeactivateResponses, MeetingTypesGetByIdData, MeetingTypesGetByIdResponses, MeetingTypesListData, MeetingTypesListResponses, MeetingTypesUpdateData, MeetingTypesUpdateResponses, SlotsListData, SlotsListResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -20,7 +20,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 
 export const bookingsList = <ThrowOnError extends boolean = false>(options?: Options<BookingsListData, ThrowOnError>): RequestResult<BookingsListResponses, unknown, ThrowOnError> => (options?.client ?? client).get<BookingsListResponses, unknown, ThrowOnError>({ url: '/api/bookings', ...options });
 
-export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Options<BookingsCreateData, ThrowOnError>): RequestResult<BookingsCreateResponses, unknown, ThrowOnError> => (options.client ?? client).post<BookingsCreateResponses, unknown, ThrowOnError>({
+export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Options<BookingsCreateData, ThrowOnError>): RequestResult<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError> => (options.client ?? client).post<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError>({
     url: '/api/bookings',
     ...options,
     headers: {

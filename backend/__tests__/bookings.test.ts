@@ -5,6 +5,7 @@ import type { Server } from 'node:http'
 import app from '../src/index'
 import { db } from '../src/db'
 import { sql } from 'drizzle-orm'
+import { getValidTestDate, makeStartAt } from './test-helpers'
 
 describe('Bookings', () => {
   let server: Server
@@ -14,11 +15,9 @@ describe('Bookings', () => {
   beforeAll(async () => {
     server = serve({ fetch: app.fetch, port: 3096 })
 
-    // Clear database to avoid conflicts between test runs
     db.run(sql`DELETE FROM bookings`)
     db.run(sql`DELETE FROM meeting_types`)
 
-    // Create a meeting type for testing
     const res = await request('http://localhost:3096').post('/api/meeting-types').send({
       name: 'Тестовая встреча',
       description: 'Для тестов',
@@ -26,8 +25,8 @@ describe('Bookings', () => {
     })
     meetingTypeId = res.body.id
 
-    // Use fixed future dates to avoid conflicts with other tests
-    testDate = '2029-09-15'
+    const testDateInfo = getValidTestDate(1)
+    testDate = testDateInfo.dateStr
   })
 
   afterAll(() => {
@@ -71,7 +70,8 @@ describe('Bookings', () => {
     })
 
     it('returns 409 for partial overlap of DIFFERENT meeting types', async () => {
-      // Create two meeting types with different durations
+      const overlapDate = getValidTestDate(2)
+
       const typeA = await request('http://localhost:3096').post('/api/meeting-types').send({
         name: 'Длинная встреча',
         description: '60 минут',
@@ -83,20 +83,20 @@ describe('Bookings', () => {
         durationMinutes: 30,
       })
 
-      // Book type A at 10:00 MSK (07:00 UTC) — occupies 07:00-08:00 UTC
+      const overlapStart1 = makeStartAt(overlapDate.dateStr, 7, 0)
+      const overlapStart2 = makeStartAt(overlapDate.dateStr, 7, 30)
+
       const bookingA = await request('http://localhost:3096').post('/api/bookings').send({
         meetingTypeId: typeA.body.id,
-        startAt: '2029-10-01T07:00:00Z',
+        startAt: overlapStart1,
         guestName: 'Анна',
         guestEmail: 'anna@test.com',
       })
       expect(bookingA.status).toBe(201)
 
-      // Try to book type B at 10:30 MSK (07:30 UTC) — would occupy 07:30-08:00 UTC
-      // This PARTIALLY overlaps with type A (07:00-08:00), should return 409
       const res = await request('http://localhost:3096').post('/api/bookings').send({
         meetingTypeId: typeB.body.id,
-        startAt: '2029-10-01T07:30:00Z',
+        startAt: overlapStart2,
         guestName: 'Борис',
         guestEmail: 'boris@test.com',
       })
@@ -105,6 +105,8 @@ describe('Bookings', () => {
     })
 
     it('allows booking immediately after another booking (no overlap)', async () => {
+      const backToDate = getValidTestDate(3)
+
       const typeA = await request('http://localhost:3096').post('/api/meeting-types').send({
         name: 'Встреча A',
         description: '30 минут',
@@ -116,22 +118,55 @@ describe('Bookings', () => {
         durationMinutes: 45,
       })
 
-      // Book type A at 08:00 UTC — occupies 08:00-08:30 UTC
+      const backToBackStart1 = makeStartAt(backToDate.dateStr, 8, 0)
+      const backToBackStart2 = makeStartAt(backToDate.dateStr, 8, 30)
+
       const bookingA = await request('http://localhost:3096').post('/api/bookings').send({
         meetingTypeId: typeA.body.id,
-        startAt: '2029-11-01T08:00:00Z',
+        startAt: backToBackStart1,
         guestName: 'Анна',
         guestEmail: 'anna@test.com',
       })
       expect(bookingA.status).toBe(201)
 
-      // Book type B at 08:30 UTC — starts exactly when A ends, should be allowed
       const bookingB = await request('http://localhost:3096').post('/api/bookings').send({
         meetingTypeId: typeB.body.id,
-        startAt: '2029-11-01T08:30:00Z',
+        startAt: backToBackStart2,
         guestName: 'Борис',
         guestEmail: 'boris@test.com',
       })
+      expect(bookingB.status).toBe(201)
+    })
+
+    it('allows booking at 11:00 when 10:00–11:00 is booked (touching, not overlapping)', async () => {
+      const touchDate = getValidTestDate(6)
+
+      const type60 = await request('http://localhost:3096').post('/api/meeting-types').send({
+        name: '60 min touch',
+        description: '60 минут',
+        durationMinutes: 60,
+      })
+
+      // Book 10:00–11:00 MSK (07:00–08:00 UTC)
+      const bookingA = await request('http://localhost:3096')
+        .post('/api/bookings')
+        .send({
+          meetingTypeId: type60.body.id,
+          startAt: makeStartAt(touchDate.dateStr, 7, 0),
+          guestName: 'Анна',
+          guestEmail: 'anna@touch.com',
+        })
+      expect(bookingA.status).toBe(201)
+
+      // Book 11:00–11:30 MSK (08:00–08:30 UTC) — starts exactly when A ends
+      const bookingB = await request('http://localhost:3096')
+        .post('/api/bookings')
+        .send({
+          meetingTypeId: meetingTypeId,
+          startAt: makeStartAt(touchDate.dateStr, 8, 0),
+          guestName: 'Борис',
+          guestEmail: 'boris@touch.com',
+        })
       expect(bookingB.status).toBe(201)
     })
 

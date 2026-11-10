@@ -21,12 +21,24 @@ paths:
       operationId: Bookings_create
       parameters: []
       responses:
-        '200':
-          description: The request has succeeded.
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Booking'
+                $ref: '#/components/schemas/CreatedResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictResponse'
       requestBody:
         required: true
         content:
@@ -227,6 +239,39 @@ components:
           type: string
         createdAt:
           type: string
+    ConflictError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - CONFLICT
+            message:
+              type: string
+              enum:
+                - Slot is already booked
+          required:
+            - code
+            - message
+    ConflictResponse:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          $ref: '#/components/schemas/ConflictError'
+    CreatedResponse:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          $ref: '#/components/schemas/Booking'
     Error:
       type: object
       required:
@@ -321,6 +366,13 @@ components:
           type: string
         endAt:
           type: string
+    ValidationErrorResponse:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          $ref: '#/components/schemas/Error'
 servers:
   - url: http://localhost:3000
     description: Development server

@@ -5,6 +5,7 @@ import type { Server } from 'node:http'
 import app from '../src/index'
 import { db } from '../src/db'
 import { bookings } from '../src/db/schema'
+import { getValidTestDate, makeStartAt } from './test-helpers'
 
 describe('E2E: Full booking flow', () => {
   let server: Server
@@ -14,10 +15,8 @@ describe('E2E: Full booking flow', () => {
   beforeAll(async () => {
     server = serve({ fetch: app.fetch, port: 3095 })
 
-    // Clear existing bookings to ensure test isolation
     db.delete(bookings).run()
 
-    // Create a meeting type with a unique name to avoid conflicts
     const res = await request('http://localhost:3095').post('/api/meeting-types').send({
       name: 'E2E Консультация',
       description: 'E2E тест',
@@ -25,9 +24,8 @@ describe('E2E: Full booking flow', () => {
     })
     meetingTypeId = res.body.id
 
-    // Use a unique future date (year 2030 to avoid all conflicts)
-    const futureDate = new Date('2030-06-15')
-    testDate = futureDate.toISOString().split('T')[0]
+    const testDateInfo = getValidTestDate(1)
+    testDate = testDateInfo.dateStr
   })
 
   afterAll(() => {
@@ -78,10 +76,9 @@ describe('E2E: Full booking flow', () => {
   })
 
   it('handles 409 conflict when two guests try to book the same slot', async () => {
-    // Use a unique date for this test (year 2031)
-    const localTestDate = '2031-07-20'
+    const conflictDate = getValidTestDate(2)
+    const localTestDate = conflictDate.dateStr
 
-    // Get available slots
     const slotsRes = await request('http://localhost:3095').get(
       `/api/slots?meetingTypeId=${meetingTypeId}&date=${localTestDate}`,
     )
@@ -108,25 +105,24 @@ describe('E2E: Full booking flow', () => {
   })
 
   it('validates guest data (name and email)', async () => {
-    const dateStr = '2032-08-25'
+    const validationDate = getValidTestDate(3)
+    const dateStr = validationDate.dateStr
 
-    // Empty name
     const res1 = await request('http://localhost:3095')
       .post('/api/bookings')
       .send({
         meetingTypeId,
-        startAt: `${dateStr}T10:00:00Z`,
+        startAt: makeStartAt(dateStr, 10, 0),
         guestName: '',
         guestEmail: 'valid@example.com',
       })
     expect(res1.status).toBe(400)
 
-    // Invalid email
     const res2 = await request('http://localhost:3095')
       .post('/api/bookings')
       .send({
         meetingTypeId,
-        startAt: `${dateStr}T10:15:00Z`,
+        startAt: makeStartAt(dateStr, 10, 15),
         guestName: 'Валид',
         guestEmail: 'not-an-email',
       })

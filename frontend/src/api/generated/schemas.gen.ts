@@ -105,6 +105,60 @@ export const BookingWithTypeNameSchema = {
     }
 } as const;
 
+export const ConflictErrorSchema = {
+    type: 'object',
+    required: [
+        'error'
+    ],
+    properties: {
+        error: {
+            type: 'object',
+            properties: {
+                code: {
+                    type: 'string',
+                    enum: [
+                        'CONFLICT'
+                    ]
+                },
+                message: {
+                    type: 'string',
+                    enum: [
+                        'Slot is already booked'
+                    ]
+                }
+            },
+            required: [
+                'code',
+                'message'
+            ]
+        }
+    }
+} as const;
+
+export const ConflictResponseSchema = {
+    type: 'object',
+    required: [
+        'body'
+    ],
+    properties: {
+        body: {
+            $ref: '#/components/schemas/ConflictError'
+        }
+    }
+} as const;
+
+export const CreatedResponseSchema = {
+    type: 'object',
+    required: [
+        'body'
+    ],
+    properties: {
+        body: {
+            $ref: '#/components/schemas/Booking'
+        }
+    }
+} as const;
+
 export const ErrorSchema = {
     type: 'object',
     required: [
@@ -246,6 +300,18 @@ export const SlotSchema = {
         },
         endAt: {
             type: 'string'
+        }
+    }
+} as const;
+
+export const ValidationErrorResponseSchema = {
+    type: 'object',
+    required: [
+        'body'
+    ],
+    properties: {
+        body: {
+            $ref: '#/components/schemas/Error'
         }
     }
 } as const;

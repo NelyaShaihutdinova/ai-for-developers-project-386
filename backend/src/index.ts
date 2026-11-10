@@ -199,7 +199,14 @@ app.get('/api/slots', async (c) => {
     }
   }
 
-  return c.json(slots)
+  // Get all bookings and filter out occupied slots
+  const allBookings = db.select().from(bookings).all()
+
+  const availableSlots = slots.filter((slot) => {
+    return !allBookings.some((b) => b.startAt < slot.endAt && b.endAt > slot.startAt)
+  })
+
+  return c.json(availableSlots)
 })
 
 // POST /api/bookings - create booking
@@ -236,6 +243,69 @@ app.post('/api/bookings', async (c) => {
   const startDateTime = new Date(startAt)
   const endDateTime = new Date(startDateTime.getTime() + duration * 60000)
 
+  // --- Booking window: 14 calendar days from tomorrow ---
+  const now = new Date()
+  const tomorrow = new Date(now)
+  tomorrow.setUTCHours(0, 0, 0, 0)
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+
+  const windowEnd = new Date(tomorrow)
+  windowEnd.setUTCDate(windowEnd.getUTCDate() + 14)
+
+  if (startDateTime < tomorrow || startDateTime >= windowEnd) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Booking must be within 14 days starting from tomorrow',
+      400,
+      c,
+    )
+  }
+
+  // --- Weekdays only (Mon–Fri in MSK / UTC+3) ---
+  const mskTimestamp = startDateTime.getTime() + 3 * 3600_000
+  const mskDayOfWeek = new Date(mskTimestamp).getUTCDay()
+  if (mskDayOfWeek === 0 || mskDayOfWeek === 6) {
+    return errorResponse('VALIDATION_ERROR', 'Booking must be on a weekday (Monday–Friday)', 400, c)
+  }
+
+  // --- Working hours 09:00–18:00 MSK (UTC+3 → UTC 06:00–15:00) ---
+  const startHourUTC = startDateTime.getUTCHours()
+  const startMinuteUTC = startDateTime.getUTCMinutes()
+  const startMinuteOfDayUTC = startHourUTC * 60 + startMinuteUTC
+
+  const workStartMinUTC = 6 * 60 // 06:00 UTC = 09:00 MSK
+  const workEndMinUTC = 15 * 60 // 15:00 UTC = 18:00 MSK
+
+  if (startMinuteOfDayUTC < workStartMinUTC || startMinuteOfDayUTC >= workEndMinUTC) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Booking must be within working hours 09:00–18:00 MSK',
+      400,
+      c,
+    )
+  }
+
+  // --- Slot must fully fit before 18:00 MSK ---
+  const endMinuteOfDayUTC = startMinuteOfDayUTC + duration
+  if (endMinuteOfDayUTC > workEndMinUTC) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Booking does not fit within working hours (must end by 18:00 MSK)',
+      400,
+      c,
+    )
+  }
+
+  // --- 15-minute granularity ---
+  if (startMinuteUTC % 15 !== 0) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Booking start time must be on a 15-minute boundary',
+      400,
+      c,
+    )
+  }
+
   // Atomic transaction: check conflicts then insert
   try {
     const startStr = startDateTime.toISOString()
@@ -245,7 +315,7 @@ app.post('/api/bookings', async (c) => {
       // Get all bookings and filter in JS
       const allBookings = tx.select().from(bookings).all()
 
-      const hasConflict = allBookings.some((b) => b.startAt <= endStr && b.endAt > startStr)
+      const hasConflict = allBookings.some((b) => b.startAt < endStr && b.endAt > startStr)
 
       if (hasConflict) {
         throw new Error('CONFLICT')

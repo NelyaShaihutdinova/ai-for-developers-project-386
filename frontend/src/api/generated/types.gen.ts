@@ -32,6 +32,21 @@ export type BookingWithTypeName = {
     createdAt: string;
 };
 
+export type ConflictError = {
+    error: {
+        code: 'CONFLICT';
+        message: 'Slot is already booked';
+    };
+};
+
+export type ConflictResponse = {
+    body: ConflictError;
+};
+
+export type CreatedResponse = {
+    body: Booking;
+};
+
 export type Error = {
     error: ErrorResponse;
 };
@@ -74,6 +89,10 @@ export type Slot = {
     endAt: string;
 };
 
+export type ValidationErrorResponse = {
+    body: Error;
+};
+
 export type BookingsListData = {
     body?: never;
     path?: never;
@@ -97,11 +116,24 @@ export type BookingsCreateData = {
     url: '/api/bookings';
 };
 
+export type BookingsCreateErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: ValidationErrorResponse;
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: ConflictResponse;
+};
+
+export type BookingsCreateError = BookingsCreateErrors[keyof BookingsCreateErrors];
+
 export type BookingsCreateResponses = {
     /**
-     * The request has succeeded.
+     * The request has succeeded and a new resource has been created as a result.
      */
-    200: Booking;
+    201: CreatedResponse;
 };
 
 export type BookingsCreateResponse = BookingsCreateResponses[keyof BookingsCreateResponses];

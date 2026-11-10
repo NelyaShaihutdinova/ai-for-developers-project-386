@@ -88,7 +88,35 @@ model Booking {
 @route("/api/bookings")
 interface Bookings {
   @get list(): BookingWithTypeName[];
-  @post create(...BookingCreate): Booking;
+  @post create(...BookingCreate): CreateBookingResponse;
+}
+
+union CreateBookingResponse {
+  CreatedResponse,
+  ValidationErrorResponse,
+  ConflictResponse,
+}
+
+model CreatedResponse {
+  @statusCode status: 201;
+  body: Booking;
+}
+
+model ValidationErrorResponse {
+  @statusCode status: 400;
+  body: Error;
+}
+
+model ConflictResponse {
+  @statusCode status: 409;
+  body: ConflictError;
+}
+
+model ConflictError {
+  error: {
+    code: "CONFLICT";
+    message: "Slot is already booked";
+  };
 }
 
 model BookingWithTypeName {
