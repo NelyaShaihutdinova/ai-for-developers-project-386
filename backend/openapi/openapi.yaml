@@ -26,19 +26,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreatedResponse'
+                $ref: '#/components/schemas/Booking'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: '#/components/schemas/Error'
         '409':
           description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConflictResponse'
+                $ref: '#/components/schemas/ConflictError'
       requestBody:
         required: true
         content:
@@ -258,20 +258,6 @@ components:
           required:
             - code
             - message
-    ConflictResponse:
-      type: object
-      required:
-        - body
-      properties:
-        body:
-          $ref: '#/components/schemas/ConflictError'
-    CreatedResponse:
-      type: object
-      required:
-        - body
-      properties:
-        body:
-          $ref: '#/components/schemas/Booking'
     Error:
       type: object
       required:
@@ -366,13 +352,6 @@ components:
           type: string
         endAt:
           type: string
-    ValidationErrorResponse:
-      type: object
-      required:
-        - body
-      properties:
-        body:
-          $ref: '#/components/schemas/Error'
 servers:
   - url: http://localhost:3000
     description: Development server

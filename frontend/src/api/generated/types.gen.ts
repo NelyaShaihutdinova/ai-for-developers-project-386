@@ -39,14 +39,6 @@ export type ConflictError = {
     };
 };
 
-export type ConflictResponse = {
-    body: ConflictError;
-};
-
-export type CreatedResponse = {
-    body: Booking;
-};
-
 export type Error = {
     error: ErrorResponse;
 };
@@ -89,10 +81,6 @@ export type Slot = {
     endAt: string;
 };
 
-export type ValidationErrorResponse = {
-    body: Error;
-};
-
 export type BookingsListData = {
     body?: never;
     path?: never;
@@ -120,11 +108,11 @@ export type BookingsCreateErrors = {
     /**
      * The server could not understand the request due to invalid syntax.
      */
-    400: ValidationErrorResponse;
+    400: Error;
     /**
      * The request conflicts with the current state of the server.
      */
-    409: ConflictResponse;
+    409: ConflictError;
 };
 
 export type BookingsCreateError = BookingsCreateErrors[keyof BookingsCreateErrors];
@@ -133,7 +121,7 @@ export type BookingsCreateResponses = {
     /**
      * The request has succeeded and a new resource has been created as a result.
      */
-    201: CreatedResponse;
+    201: Booking;
 };
 
 export type BookingsCreateResponse = BookingsCreateResponses[keyof BookingsCreateResponses];

@@ -55,6 +55,36 @@ describe('MeetingTypes CRUD', () => {
       expect(res.status).toBe(400)
       expect(res.body.error.code).toBe('VALIDATION_ERROR')
     })
+
+    it('creates meeting type with 15 minutes duration', async () => {
+      const res = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Короткая встреча',
+        description: '15 минут',
+        durationMinutes: 15,
+      })
+      expect(res.status).toBe(201)
+      expect(res.body.durationMinutes).toBe(15)
+    })
+
+    it('creates meeting type with 45 minutes duration', async () => {
+      const res = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Средняя встреча',
+        description: '45 минут',
+        durationMinutes: 45,
+      })
+      expect(res.status).toBe(201)
+      expect(res.body.durationMinutes).toBe(45)
+    })
+
+    it('creates meeting type with 60 minutes duration', async () => {
+      const res = await request('http://localhost:3097').post('/api/meeting-types').send({
+        name: 'Длинная встреча',
+        description: '60 минут',
+        durationMinutes: 60,
+      })
+      expect(res.status).toBe(201)
+      expect(res.body.durationMinutes).toBe(60)
+    })
   })
 
   describe('GET /api/meeting-types/:id', () => {

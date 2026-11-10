@@ -88,16 +88,17 @@ function DashboardPage() {
   }
 
   const handleSubmit = async (values: typeof form.values) => {
+    const body = { ...values, durationMinutes: Number(values.durationMinutes) }
     if (editingId) {
       await meetingTypesUpdate({
         client: apiClient,
         path: { id: editingId },
-        body: values,
+        body,
       })
     } else {
       await meetingTypesCreate({
         client: apiClient,
-        body: values,
+        body,
       })
     }
 

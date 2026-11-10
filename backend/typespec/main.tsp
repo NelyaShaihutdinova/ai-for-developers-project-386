@@ -99,17 +99,17 @@ union CreateBookingResponse {
 
 model CreatedResponse {
   @statusCode status: 201;
-  body: Booking;
+  @body body: Booking;
 }
 
 model ValidationErrorResponse {
   @statusCode status: 400;
-  body: Error;
+  @body body: Error;
 }
 
 model ConflictResponse {
   @statusCode status: 409;
-  body: ConflictError;
+  @body body: ConflictError;
 }
 
 model ConflictError {
