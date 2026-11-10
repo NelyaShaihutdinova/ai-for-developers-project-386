@@ -1,0 +1,32 @@
+amends "package://github.com/jdx/hk/releases/download/v2.11.1/hk@2.11.1#/Config.pkl"
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps {
+      ["lint-backend"] {
+        check = "cd backend && npm run lint"
+      }
+      ["lint-frontend"] {
+        check = "cd frontend && npm run lint"
+      }
+      ["format-frontend"] {
+        check = "cd frontend && npm run format:check"
+        fix = "cd frontend && npm run format:fix"
+      }
+      ["typecheck-backend"] {
+        check = "cd backend && npm run typecheck"
+      }
+      ["typecheck-frontend"] {
+        check = "cd frontend && npm run typecheck"
+      }
+      ["test-backend"] {
+        check = "cd backend && npm run test"
+      }
+      ["test-frontend"] {
+        check = "cd frontend && npm run test"
+      }
+    }
+  }
+}

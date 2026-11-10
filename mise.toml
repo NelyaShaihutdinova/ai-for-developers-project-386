@@ -1,0 +1,142 @@
+monorepo_root = true
+
+[monorepo]
+config_roots = [".", "frontend", "backend"]
+
+[tools]
+node = "24"
+hk = "2.11.1"
+
+[settings]
+experimental = true
+
+[env]
+HK_MISE = 1
+
+[tasks.install]
+description = "Install all dependencies"
+run = [
+  "cd backend && npm install",
+  "cd frontend && npm install",
+  "cd e2e && npm install",
+]
+
+[tasks.dev]
+description = "Start both dev servers"
+depends = ["dev:backend", "dev:frontend"]
+
+[tasks."dev:backend"]
+description = "Start backend dev server"
+dir = "backend"
+run = "npm run dev"
+
+[tasks."dev:frontend"]
+description = "Start frontend dev server"
+dir = "frontend"
+run = "npm run dev"
+
+[tasks.build]
+description = "Build both projects"
+depends = ["build:backend", "build:frontend"]
+
+[tasks."build:backend"]
+description = "Build backend"
+dir = "backend"
+run = "npm run build"
+
+[tasks."build:frontend"]
+description = "Build frontend"
+dir = "frontend"
+run = "npm run build"
+
+[tasks."typespec:compile"]
+description = "Compile TypeSpec to OpenAPI"
+dir = "backend"
+run = "npm run typespec:compile"
+
+[tasks."generate:api"]
+description = "Generate SDK from OpenAPI spec"
+depends = ["typespec:compile"]
+run = "cd frontend && npm run generate:api"
+
+[tasks.test]
+description = "Run all tests"
+depends = ["test:backend", "test:frontend", "test:e2e"]
+
+[tasks."test:backend"]
+description = "Run backend tests"
+dir = "backend"
+run = "npm run test"
+
+[tasks."test:frontend"]
+description = "Run frontend tests"
+dir = "frontend"
+run = "npm run test"
+
+[tasks."test:e2e"]
+description = "Run browser E2E tests with Playwright"
+run = "bash scripts/e2e.sh"
+
+[tasks.lint]
+description = "Lint both projects"
+depends = ["lint:backend", "lint:frontend"]
+
+[tasks."lint:backend"]
+description = "Lint backend"
+dir = "backend"
+run = "npm run lint"
+
+[tasks."lint:frontend"]
+description = "Lint frontend"
+dir = "frontend"
+run = "npm run lint"
+
+[tasks."format:check"]
+description = "Check formatting"
+depends = ["format:check:backend", "format:check:frontend"]
+
+[tasks."format:check:backend"]
+description = "Check backend formatting"
+dir = "backend"
+run = "npm run format:check"
+
+[tasks."format:check:frontend"]
+description = "Check frontend formatting"
+dir = "frontend"
+run = "npm run format:check"
+
+[tasks.typecheck]
+description = "Type check both projects"
+depends = ["typecheck:backend", "typecheck:frontend"]
+
+[tasks."typecheck:backend"]
+description = "Type check backend"
+dir = "backend"
+run = "npm run typecheck"
+
+[tasks."typecheck:frontend"]
+description = "Type check frontend"
+dir = "frontend"
+run = "npm run typecheck"
+
+[tasks.check]
+description = "Run all checks: lint, format, typecheck, test"
+depends = ["lint", "format:check", "typecheck", "test"]
+
+[tasks."hooks:install"]
+description = "Install git hooks via hk"
+run = "hk install"
+
+[tasks."hooks:uninstall"]
+description = "Remove git hooks"
+run = "hk uninstall"
+
+[daemons.backend]
+description = "Backend dev server daemon"
+dir = "backend"
+run = "npm run dev"
+
+[daemons.frontend]
+description = "Frontend dev server daemon"
+dir = "frontend"
+run = "npm run dev"

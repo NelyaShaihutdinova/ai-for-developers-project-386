@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794166940397,
+      "tag": "0000_conscious_kronos",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794167711698,
+      "tag": "0001_wide_roughhouse",
+      "breakpoints": true
+    }
+  ]
+}
